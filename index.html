@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dark Dungeon - RPG</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #2d2d34;
+            color: #f4f4f9;
+        }
+
+        header {
+            background-color: #6a4c93;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group button {
+            width: 100%;
+            padding: 0.7rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            background-color: #3e3e49;
+            color: #fff;
+        }
+
+        .form-group button {
+            background-color: #6a4c93;
+            color: white;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #8c6db0;
+        }
+
+        .salas {
+            margin-top: 2rem;
+        }
+
+        .salas ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .salas li {
+            padding: 1rem;
+            background-color: #3e3e49;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .salas li:hover {
+            background-color: #504d63;
+        }
+
+        .chat {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .chat-messages {
+            border-radius: 5px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: scroll;
+            background: #3e3e49;
+            color: #fff;
+        }
+
+        .chat-messages div {
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-input {
+            margin-top: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.7rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            background-color: #3e3e49;
+            color: #fff;
+        }
+
+        .chat-input button {
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            background-color: #6a4c93;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #8c6db0;
+        }
+
+        .navigation {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .navigation button {
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            background-color: #6a4c93;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .navigation button:hover {
+            background-color: #8c6db0;
+        }
+
+        .select-character {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .select-character ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .select-character li {
+            padding: 1rem;
+            background-color: #3e3e49;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .select-character li:hover {
+            background-color: #504d63;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Dark Dungeon - RPG</h1>
+    </header>
+    <div class="container">
+        <div id="sala-form">
+            <div class="form-group">
+                <label for="nome-sala">Nome da Sala</label>
+                <input type="text" id="nome-sala" placeholder="Digite o nome da sala">
+            </div>
+            <div class="form-group">
+                <label for="descricao-sala">Descrição</label>
+                <input type="text" id="descricao-sala" placeholder="Digite a descrição da sala">
+            </div>
+            <div class="form-group">
+                <label for="mestre-id">Seu ID</label>
+                <input type="text" id="mestre-id" placeholder="Digite seu ID">
+            </div>
+            <div class="form-group">
+                <button id="criar-sala">Criar Sala</button>
+            </div>
+        </div>
+        <div class="salas" id="salas">
+            <h2>Salas Disponíveis</h2>
+            <ul id="lista-salas">
+                <!-- Salas serão listadas aqui -->
+            </ul>
+        </div>
+        <div class="select-character" id="select-character">
+            <h2>Escolha um Personagem</h2>
+            <ul id="lista-personagens">
+                <!-- Lista de personagens para selecionar -->
+            </ul>
+            <button id="cancelar-personagem" class="back-button">Cancelar</button>
+        </div>
+        <div id="chat" class="chat">
+            <h2>Chat - Sala: <span id="sala-atual"></span></h2>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="mensagem" placeholder="Digite sua mensagem">
+                <button id="enviar-mensagem">Enviar</button>
+            </div>
+            <div class="navigation">
+                <button id="voltar-salas" class="back-button">Voltar às Salas</button>
+            </div>
+        </div>
+        <div class="navigation">
+            <button onclick="window.location.href='personagens.html'">Gerenciar Personagens</button>
+        </div>
+    </div>
+    <script>
+        const socket = io('http://127.0.0.1:3001');
+        let salaAtual = '';
+        let personagens = [];
+        let personagemSelecionado = '';
+
+        // Carregar salas do servidor
+        function carregarSalas() {
+            fetch('http://127.0.0.1:3001/salas')
+                .then(response => response.json())
+                .then(data => {
+                    const listaSalas = document.getElementById('lista-salas');
+                    listaSalas.innerHTML = '';
+                    data.forEach(sala => {
+                        const li = document.createElement('li');
+                        li.textContent = `${sala.nome} - ${sala.descricao}`;
+                        li.addEventListener('click', () => selecionarPersonagem(sala.nome));
+                        listaSalas.appendChild(li);
+                    });
+                });
+        }
+
+        // Carregar personagens do servidor
+        function carregarPersonagens() {
+            fetch('http://127.0.0.1:3001/personagens')
+                .then(response => response.json())
+                .then(data => {
+                    personagens = data;
+                });
+        }
+
+        // Selecionar personagem para entrar na sala
+        function selecionarPersonagem(nomeSala) {
+            salaAtual = nomeSala;
+            document.getElementById('sala-form').style.display = 'none';
+            document.getElementById('salas').style.display = 'none';
+            document.getElementById('select-character').style.display = 'block';
+
+            const listaPersonagens = document.getElementById('lista-personagens');
+            listaPersonagens.innerHTML = '';
+            personagens.forEach(personagem => {
+                const li = document.createElement('li');
+                li.textContent = `${personagem.nome} - ${personagem.classe}`;
+                li.addEventListener('click', () => entrarSalaComPersonagem(personagem));
+                listaPersonagens.appendChild(li);
+            });
+        }
+
+        // Entrar na sala com o personagem selecionado
+        function entrarSalaComPersonagem(personagem) {
+            personagemSelecionado = personagem;
+            document.getElementById('select-character').style.display = 'none';
+            document.getElementById('chat').style.display = 'block';
+            document.getElementById('sala-atual').textContent = salaAtual;
+
+            socket.emit('entrarSala', { sala: salaAtual, personagem });
+
+            socket.on('mensagemSala', (mensagem) => {
+                const chatMessages = document.getElementById('chat-messages');
+                const div = document.createElement('div');
+                div.textContent = `${mensagem.usuario}: ${mensagem.mensagem}`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+
+            socket.on('notificacao', (notificacao) => {
+                const chatMessages = document.getElementById('chat-messages');
+                const div = document.createElement('div');
+                div.style.fontStyle = 'italic';
+                div.textContent = notificacao.mensagem;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+
+
+        // Enviar mensagem no chat
+        function enviarMensagem() {
+            const mensagem = document.getElementById('mensagem').value;
+            if (mensagem && salaAtual) {
+                socket.emit('mensagemSala', { sala: salaAtual, mensagem });
+                document.getElementById('mensagem').value = '';
+            }
+        }
+
+        document.getElementById('enviar-mensagem').addEventListener('click', enviarMensagem);
+        document.getElementById('mensagem').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarMensagem();
+        });
+        document.getElementById('criar-sala').addEventListener('click', () => {
+            const nome = document.getElementById('nome-sala').value.trim();
+            const descricao = document.getElementById('descricao-sala').value.trim();
+            const mestre = document.getElementById('mestre-id').value.trim();
+
+            if (!nome || !mestre) {
+                alert('O nome da sala e o ID do mestre são obrigatórios!');
+                return;
+            }
+
+            fetch('http://127.0.0.1:3001/salas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nome, descricao, mestre }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return response.json().then((data) => {
+                            throw new Error(data.error || 'Erro ao criar a sala.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    alert(`Sala criada com sucesso: ${data.nome}`);
+                    document.getElementById('nome-sala').value = '';
+                    document.getElementById('descricao-sala').value = '';
+                    document.getElementById('mestre-id').value = '';
+                    carregarSalas(); // Atualizar a lista de salas
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert(err.message);
+                });
+        });
+
+        // Inicializar
+        carregarSalas();
+        carregarPersonagens();
+    </script>
+
+</body>
+
+</html>

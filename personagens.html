@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciar Personagens</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #2d2d34;
+      color: #f4f4f9;
+    }
+
+    header {
+      background-color: #6a4c93;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+      background: #3e3e49;
+      border-radius: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group button {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 0.5rem;
+      background-color: #6a4c93;
+      color: white;
+    }
+
+    .form-group button {
+      cursor: pointer;
+    }
+
+    .form-group button:hover {
+      background-color: #8c6db0;
+    }
+
+    .personagens-list {
+      margin-top: 2rem;
+    }
+
+    .personagens-list ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .personagens-list li {
+      padding: 1rem;
+      background-color: #504d63;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .personagens-list li button {
+      padding: 0.3rem 0.5rem;
+      background-color: #6a4c93;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .personagens-list li button:hover {
+      background-color: #8c6db0;
+    }
+
+    .navigation {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .navigation button {
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      background-color: #6a4c93;
+      color: white;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .navigation button:hover {
+      background-color: #8c6db0;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Gerenciar Personagens</h1>
+  </header>
+  <div class="container">
+    <h2>Criar Personagem</h2>
+    <div class="form-group">
+      <label for="nome-personagem">Nome do Personagem</label>
+      <input type="text" id="nome-personagem" placeholder="Digite o nome do personagem">
+    </div>
+    <div class="form-group">
+      <label for="classe-personagem">Classe</label>
+      <select id="classe-personagem">
+        <option value="Guerreiro">Guerreiro</option>
+        <option value="Mago">Mago</option>
+        <option value="Ladino">Ladino</option>
+        <option value="Clérigo">Clérigo</option>
+        <option value="Bárbaro">Bárbaro</option>
+        <option value="Paladino">Paladino</option>
+        <option value="Ranger">Ranger</option>
+        <option value="Druida">Druida</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <button id="criar-personagem">Criar Personagem</button>
+    </div>
+    <div class="personagens-list">
+      <h2>Seus Personagens</h2>
+      <ul id="lista-personagens">
+        <!-- Personagens criados serão listados aqui -->
+      </ul>
+    </div>
+    <div class="form-group">
+    <div class="navigation">
+      <button onclick="window.location.href='index.html'">Voltar para Salas</button>
+    </div>
+  </div>
+  </div>
+  <script>
+    let personagens = [];
+
+    function carregarPersonagens() {
+      fetch('http://127.0.0.1:3001/personagens')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Erro ao carregar personagens: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          personagens = data;
+          const listaPersonagens = document.getElementById('lista-personagens');
+          listaPersonagens.innerHTML = '';
+          personagens.forEach(personagem => {
+            const li = document.createElement('li');
+            li.textContent = `${personagem.nome} - ${personagem.classe}`;
+            listaPersonagens.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error('Erro ao carregar personagens:', err.message);
+          alert('Erro ao carregar personagens. Verifique o backend.');
+        });
+    }
+
+    fetch('http://127.0.0.1:3001/personagens')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Erro ao carregar personagens: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        personagens = data;
+        const listaPersonagens = document.getElementById('lista-personagens');
+        listaPersonagens.innerHTML = '';
+        personagens.forEach(personagem => {
+          const li = document.createElement('li');
+          li.textContent = `${personagem.nome} - ${personagem.classe}`;
+          listaPersonagens.appendChild(li);
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao carregar personagens:', err);
+        alert('Não foi possível carregar os personagens. Verifique a conexão com o servidor.');
+      });
+
+
+
+    document.getElementById('criar-personagem').addEventListener('click', () => {
+      const nome = document.getElementById('nome-personagem').value.trim();
+      const classe = document.getElementById('classe-personagem').value.trim();
+
+      if (!nome || !classe) {
+        alert('O nome e a classe do personagem são obrigatórios!');
+        return;
+      }
+
+      fetch('http://127.0.0.1:3001/personagens', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nome, classe }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(data => {
+              throw new Error(data.error || 'Erro ao criar o personagem.');
+            });
+          }
+          return response.json();
+        })
+        .then(() => {
+          alert('Personagem criado com sucesso!');
+          document.getElementById('nome-personagem').value = '';
+          document.getElementById('classe-personagem').value = '';
+          carregarPersonagens();
+        })
+        .catch(err => {
+          console.error(err);
+          alert(err.message);
+        });
+    });
+
+    carregarPersonagens();
+  </script>
+</body>
+
+</html>
