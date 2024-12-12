@@ -68,10 +68,10 @@ O servidor estará disponível em [http://localhost:3001](http://localhost:3001)
 ## 🖥️ Demonstração
 
 ### Tela Inicial
-![Tela Inicial](https://via.placeholder.com/800x400.png?text=Tela+Inicial)
+![Tela Inicial](Em fase de Testes.).
 
 ### Gerenciar Personagens
-![Gerenciar Personagens](https://via.placeholder.com/800x400.png?text=Gerenciar+Personagens)
+![Gerenciar Personagens](Em fase de Testes.).
 
 ## 📄 Licença
 
