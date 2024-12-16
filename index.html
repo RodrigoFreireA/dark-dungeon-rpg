@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dark Dungeon - RPG</title>
+    <title>RPG Online</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -85,59 +86,17 @@
             background-color: #504d63;
         }
 
-        .chat {
-            display: none;
-            margin-top: 2rem;
-        }
-
-        .chat-messages {
-            border-radius: 5px;
-            padding: 1rem;
-            height: 300px;
-            overflow-y: scroll;
-            background: #3e3e49;
-            color: #fff;
-        }
-
-        .chat-messages div {
-            margin-bottom: 0.5rem;
-        }
-
-        .chat-input {
-            margin-top: 1rem;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 0.7rem;
-            font-size: 1rem;
-            border-radius: 5px;
-            background-color: #3e3e49;
-            color: #fff;
-        }
-
-        .chat-input button {
-            padding: 0.7rem 1.5rem;
-            font-size: 1rem;
-            background-color: #6a4c93;
-            color: white;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .chat-input button:hover {
-            background-color: #8c6db0;
-        }
-
         .navigation {
             margin-top: 2rem;
             text-align: center;
         }
 
-        .navigation button {
+        .logout-container {
+            text-align: right;
+            margin: 1rem;
+        }
+
+        #logout {
             padding: 0.7rem 1.5rem;
             font-size: 1rem;
             background-color: #6a4c93;
@@ -145,41 +104,23 @@
             border-radius: 5px;
             border: none;
             cursor: pointer;
-        }
-
-        .navigation button:hover {
-            background-color: #8c6db0;
-        }
-
-        .select-character {
-            display: none;
-            margin-top: 2rem;
-        }
-
-        .select-character ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .select-character li {
-            padding: 1rem;
-            background-color: #3e3e49;
-            margin-bottom: 0.5rem;
-            border-radius: 5px;
-            cursor: pointer;
             transition: background-color 0.2s ease;
         }
 
-        .select-character li:hover {
-            background-color: #504d63;
+        #logout:hover {
+            background-color: #8c6db0;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>Dark Dungeon - RPG</h1>
+        <h1>RPG Online</h1>
     </header>
+
+    <div class="logout-container">
+        <button id="logout">Logout</button>
+    </div>
     <div class="container">
         <div id="sala-form">
             <div class="form-group">
@@ -191,11 +132,10 @@
                 <input type="text" id="descricao-sala" placeholder="Digite a descrição da sala">
             </div>
             <div class="form-group">
-                <label for="mestre-id">Seu ID</label>
-                <input type="text" id="mestre-id" placeholder="Digite seu ID">
+                <button id="criar-sala">Criar Sala</button>
             </div>
             <div class="form-group">
-                <button id="criar-sala">Criar Sala</button>
+                <button onclick="window.location.href='personagens.html'">Gerenciar Personagens</button>
             </div>
         </div>
         <div class="salas" id="salas">
@@ -204,38 +144,51 @@
                 <!-- Salas serão listadas aqui -->
             </ul>
         </div>
-        <div class="select-character" id="select-character">
+        <div id="select-character" style="display: none;">
             <h2>Escolha um Personagem</h2>
-            <ul id="lista-personagens">
-                <!-- Lista de personagens para selecionar -->
-            </ul>
-            <button id="cancelar-personagem" class="back-button">Cancelar</button>
+            <ul id="lista-personagens"></ul>
+            <button onclick="voltarParaSalas()">Voltar</button>
         </div>
-        <div id="chat" class="chat">
+        <div class="personagens" id="personagens">
+            <h2>Personagens</h2>
+            <ul id="lista-personagens">
+                <!-- Personagens serão listados aqui -->
+            </ul>
+            <div class="form-group">
+                <button onclick="carregarPersonagens()">Atualizar Personagens</button>
+            </div>
+        </div>
+
+        <div id="chat" style="display: none;">
             <h2>Chat - Sala: <span id="sala-atual"></span></h2>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input">
-                <input type="text" id="mensagem" placeholder="Digite sua mensagem">
+            <div id="chat-messages" style="height: 300px; overflow-y: scroll; background: #3e3e49; padding: 1rem;">
+            </div>
+            <div>
+                <input type="text" id="mensagem" placeholder="Digite sua mensagem" />
                 <button id="enviar-mensagem">Enviar</button>
             </div>
-            <div class="navigation">
-                <button onclick="window.location.href='index.html'">Voltar às Salas</button>
-            </div>
-        </div>
-        <div class="navigation">
-            <button onclick="window.location.href='personagens.html'">Gerenciar Personagens</button>
         </div>
     </div>
-    <script>
-        const socket = io('http://127.0.0.1:3001');
-        let salaAtual = '';
-        let personagens = [];
-        let personagemSelecionado = '';
 
-        // Carregar salas do servidor
+    <!-- Script principal do index.html -->
+    <script>
+
+        const API_URL = 'http://localhost:3001';
+        const token = localStorage.getItem('token');
+        let salaAtual = '';
+
+        if (!token) window.location.href = 'login.html';
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+
+        const socket = io(API_URL);
+
         function carregarSalas() {
-            fetch('http://127.0.0.1:3001/salas')
-                .then(response => response.json())
+            fetch(`${API_URL}/salas`, { headers })
+                .then(res => res.json())
                 .then(data => {
                     const listaSalas = document.getElementById('lista-salas');
                     listaSalas.innerHTML = '';
@@ -245,118 +198,117 @@
                         li.addEventListener('click', () => selecionarPersonagem(sala.nome));
                         listaSalas.appendChild(li);
                     });
-                });
+                }).catch(err => alert('Erro ao carregar salas.'));
         }
 
-        // Carregar personagens do servidor
         function carregarPersonagens() {
-            fetch('http://127.0.0.1:3001/personagens')
-                .then(response => response.json())
-                .then(data => {
-                    personagens = data;
+            fetch(`${API_URL}/personagens`, { headers })
+                .then((res) => res.json())
+                .then((personagens) => {
+                    const listaPersonagens = document.getElementById('lista-personagens');
+                    listaPersonagens.innerHTML = '';
+
+                    personagens.forEach((personagem) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${personagem.nome} - ${personagem.classe}`;
+
+                        // Adicionar botão de excluir
+                        const btnExcluir = document.createElement('button');
+                        btnExcluir.textContent = 'Excluir';
+                        btnExcluir.style.marginLeft = '10px';
+                        btnExcluir.addEventListener('click', () => excluirPersonagem(personagem.nome));
+
+                        li.appendChild(btnExcluir);
+                        listaPersonagens.appendChild(li);
+                    });
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert('Erro ao carregar personagens.');
                 });
         }
-
-        // Selecionar personagem para entrar na sala
-        function selecionarPersonagem(nomeSala) {
-            salaAtual = nomeSala;
-            document.getElementById('sala-form').style.display = 'none';
-            document.getElementById('salas').style.display = 'none';
-            document.getElementById('select-character').style.display = 'block';
-
-            const listaPersonagens = document.getElementById('lista-personagens');
-            listaPersonagens.innerHTML = '';
-            personagens.forEach(personagem => {
-                const li = document.createElement('li');
-                li.textContent = `${personagem.nome} - ${personagem.classe}`;
-                li.addEventListener('click', () => entrarSalaComPersonagem(personagem));
-                listaPersonagens.appendChild(li);
-            });
-        }
-
-        // Entrar na sala com o personagem selecionado
-        function entrarSalaComPersonagem(personagem) {
-            personagemSelecionado = personagem;
-            document.getElementById('select-character').style.display = 'none';
-            document.getElementById('chat').style.display = 'block';
-            document.getElementById('sala-atual').textContent = salaAtual;
-
-            socket.emit('entrarSala', { sala: salaAtual, personagem });
-
-            socket.on('mensagemSala', (mensagem) => {
-                const chatMessages = document.getElementById('chat-messages');
-                const div = document.createElement('div');
-                div.textContent = `${mensagem.usuario}: ${mensagem.mensagem}`;
-                chatMessages.appendChild(div);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-
-            socket.on('notificacao', (notificacao) => {
-                const chatMessages = document.getElementById('chat-messages');
-                const div = document.createElement('div');
-                div.style.fontStyle = 'italic';
-                div.textContent = notificacao.mensagem;
-                chatMessages.appendChild(div);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-
-
-        // Enviar mensagem no chat
-        function enviarMensagem() {
-            const mensagem = document.getElementById('mensagem').value;
-            if (mensagem && salaAtual) {
-                socket.emit('mensagemSala', { sala: salaAtual, mensagem });
-                document.getElementById('mensagem').value = '';
-            }
-        }
-
-        document.getElementById('enviar-mensagem').addEventListener('click', enviarMensagem);
-        document.getElementById('mensagem').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') enviarMensagem();
-        });
-        document.getElementById('criar-sala').addEventListener('click', () => {
-            const nome = document.getElementById('nome-sala').value.trim();
-            const descricao = document.getElementById('descricao-sala').value.trim();
-            const mestre = document.getElementById('mestre-id').value.trim();
-
-            if (!nome || !mestre) {
-                alert('O nome da sala e o ID do mestre são obrigatórios!');
-                return;
-            }
-
-            fetch('http://127.0.0.1:3001/salas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ nome, descricao, mestre }),
+        function excluirPersonagem(nome) {
+            fetch(`${API_URL}/personagens`, {
+                method: 'DELETE',
+                headers,
+                body: JSON.stringify({ nome })
             })
-                .then((response) => {
-                    if (!response.ok) {
-                        return response.json().then((data) => {
-                            throw new Error(data.error || 'Erro ao criar a sala.');
-                        });
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('Erro ao excluir personagem.');
                     }
-                    return response.json();
+                    return res.json();
                 })
-                .then((data) => {
-                    alert(`Sala criada com sucesso: ${data.nome}`);
-                    document.getElementById('nome-sala').value = '';
-                    document.getElementById('descricao-sala').value = '';
-                    document.getElementById('mestre-id').value = '';
-                    carregarSalas(); // Atualizar a lista de salas
+                .then(() => {
+                    alert(`Personagem ${nome} excluído com sucesso.`);
+                    carregarPersonagens(); // Atualizar a lista de personagens
                 })
                 .catch((err) => {
                     console.error(err);
                     alert(err.message);
                 });
+        }
+
+        function selecionarPersonagem(nomeSala) {
+            salaAtual = nomeSala;
+            const selectCharacterElement = document.getElementById('select-character');
+            const listaPersonagens = document.getElementById('lista-personagens');
+
+            document.getElementById('sala-form').style.display = 'none';
+            document.getElementById('salas').style.display = 'none';
+            selectCharacterElement.style.display = 'block';
+
+            fetch(`${API_URL}/personagens`, { headers })
+                .then((res) => {
+                    if (!res.ok) throw new Error('Erro ao carregar personagens.');
+                    return res.json();
+                })
+                .then((personagens) => {
+                    listaPersonagens.innerHTML = '';
+                    personagens.forEach((personagem) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${personagem.nome} - ${personagem.classe}`;
+                        li.style.cursor = 'pointer';
+
+                        // Chamar a função global
+                        li.addEventListener('click', () => window.entrarSalaComPersonagem(personagem));
+
+                        listaPersonagens.appendChild(li);
+                    });
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert('Erro ao carregar personagens. Tente novamente.');
+                });
+        }
+
+        document.getElementById('criar-sala').addEventListener('click', () => {
+            const nome = document.getElementById('nome-sala').value.trim();
+            const descricao = document.getElementById('descricao-sala').value.trim();
+
+            fetch(`${API_URL}/salas`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ nome, descricao })
+            }).then(() => carregarSalas());
         });
 
-        // Inicializar
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        });
+
+        function voltarParaSalas() {
+            document.getElementById('select-character').style.display = 'none';
+            document.getElementById('sala-form').style.display = 'block';
+            document.getElementById('salas').style.display = 'block';
+        }
+
         carregarSalas();
-        carregarPersonagens();
     </script>
+
+    <!-- Novo script para chat -->
+    <script src="chat.js"></script>
 
 </body>
 
