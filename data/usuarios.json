@@ -1,0 +1,26 @@
+[
+  {
+    "id": 2,
+    "nome": "mestre1",
+    "nivel": "Mestre",
+    "senha": "mestre123"
+  },
+  {
+    "id": 3,
+    "nome": "player1",
+    "nivel": "Player",
+    "senha": "player123"
+  },
+  {
+    "id": 4,
+    "nome": "novoPlayer",
+    "nivel": "Player",
+    "senha": "senha123"
+  },
+  {
+    "id": 4,
+    "nome": "admin",
+    "nivel": "ADM",
+    "senha": "$2a$10$9xwaKE.TMC4bbcs44FYFLOP4Twb4OtDKRR46caHM6dwb.ROgIfIT6"
+  }
+]

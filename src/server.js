@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const personagensRoutes = require('./routes/personagensRoutes');
 const salasRoutes = require('./routes/salasRoutes');
 const setupSocket = require('./socket');
+const usuariosRoutes = require('./routes/usuariosRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ const salasPath = path.resolve(__dirname, '../data/salas.json');
 // Rotas
 app.use('/personagens', personagensRoutes);
 app.use('/salas', salasRoutes);
+app.use('/usuarios', usuariosRoutes);
 
 // Socket.IO
 setupSocket(server);
