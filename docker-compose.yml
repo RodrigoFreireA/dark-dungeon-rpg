@@ -7,8 +7,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./personagens.json:/app/personagens.json
-      - ./salas.json:/app/salas.json
+      - ./data:/app/data
     stdin_open: true
     tty: true
 

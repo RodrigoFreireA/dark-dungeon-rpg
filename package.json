@@ -1,10 +1,10 @@
 {
-    "name": "rpg-online",
+    "name": "dark-dungeon-online",
     "version": "1.0.0",
-    "description": "Servidor para RPG Online",
+    "description": "RPG de Mesa Online",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node src/server.js"
     },
     "dependencies": {
         "cors": "^2.8.5",

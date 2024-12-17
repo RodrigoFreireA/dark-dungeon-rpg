@@ -3,5 +3,10 @@
     "id": 1,
     "nome": "Rodrigo",
     "classe": "Guerreiro"
+  },
+  {
+    "id": 2,
+    "nome": "Rodrigo",
+    "classe": "Ladino"
   }
 ]
