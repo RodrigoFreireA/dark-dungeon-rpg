@@ -3,10 +3,13 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
-const personagensRoutes = require('./routes/personagensRoutes');
-const salasRoutes = require('./routes/salasRoutes');
 const setupSocket = require('./socket');
 const usuariosRoutes = require('./routes/usuariosRoutes');
+const salasRoutes = require('./routes/salasRoutes');
+const personagensRoutes = require('./routes/personagensRoutes');
+
+require('dotenv').config();
+const jwtSecret = process.env.JWT_SECRET;
 
 const app = express();
 const server = http.createServer(app);
@@ -21,9 +24,9 @@ const personagensPath = path.resolve(__dirname, '../data/personagens.json');
 const salasPath = path.resolve(__dirname, '../data/salas.json');
 
 // Rotas
-app.use('/personagens', personagensRoutes);
-app.use('/salas', salasRoutes);
 app.use('/usuarios', usuariosRoutes);
+app.use('/salas', salasRoutes);
+app.use('/personagens', personagensRoutes);
 
 // Socket.IO
 setupSocket(server);

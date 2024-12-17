@@ -2,14 +2,21 @@ const jwt = require('jsonwebtoken');
 
 function verificarToken(req, res, next) {
     const token = req.header('Authorization');
-    if (!token) return res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
+
+    if (!token) {
+        return res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
+    }
 
     try {
-        const decoded = jwt.verify(token, 'secreto123'); // Segredo usado para gerar o token
-        req.usuario = decoded; // Adiciona os dados do token no request
+        // Extrair token sem o "Bearer "
+        const tokenLimpo = token.split(' ')[1];
+
+        // Validar token usando a mesma chave secreta do login
+        const decoded = jwt.verify(tokenLimpo, process.env.JWT_SECRET);
+        req.usuario = decoded; // Adicionar os dados do token no req
         next();
     } catch (err) {
-        res.status(401).json({ error: 'Token inválido.' });
+        return res.status(401).json({ error: 'Token inválido.' });
     }
 }
 
