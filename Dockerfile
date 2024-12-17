@@ -1,17 +1,20 @@
-# Usar imagem base do Node.js
+# Usa uma imagem Node.js oficial
 FROM node:18
 
-# Definir o diretório de trabalho no container
+# Define o diretório de trabalho no container
 WORKDIR /app
 
-# Copiar os arquivos do projeto para o container
+# Copia package.json e package-lock.json
+COPY package*.json ./
+
+# Instala TODAS as dependências listadas no package.json
+RUN npm install
+
+# Copia o restante dos arquivos do projeto
 COPY . .
 
-# Instalar as dependências do projeto
-RUN npm install express socket.io cors
-
-# Expor a porta usada pelo servidor
+# Expõe a porta 3001 (para o servidor Express)
 EXPOSE 3001
 
 # Comando para iniciar o servidor
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

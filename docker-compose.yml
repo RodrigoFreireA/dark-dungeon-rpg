@@ -5,8 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
-      - .:/app
+      - ./personagens.json:/app/personagens.json
+      - ./salas.json:/app/salas.json
     stdin_open: true
     tty: true
+

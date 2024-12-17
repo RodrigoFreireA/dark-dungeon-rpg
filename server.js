@@ -1,13 +1,18 @@
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
+const helmet = require('helmet'); // Import Helmet
 const fs = require('fs');
 const path = require('path');
 const { Server } = require('socket.io');
+const Joi = require('joi'); // Import Joi para validação
 
 // Inicializar o aplicativo e servidor HTTP
 const app = express();
 const server = http.createServer(app);
+
+// Ativar Helmet para segurança HTTP
+app.use(helmet());
 
 // Configurar o Socket.IO
 const io = new Server(server, {
@@ -51,16 +56,28 @@ function salvarDados(filePath, data) {
 let personagens = carregarDados(personagensPath);
 let salas = carregarDados(salasPath);
 
+// Schemas de validação
+const personagemSchema = Joi.object({
+    nome: Joi.string().min(3).required(),
+    classe: Joi.string().required(),
+});
+
+const salaSchema = Joi.object({
+    nome: Joi.string().min(3).required(),
+    descricao: Joi.string().optional(),
+    mestre: Joi.string().required(),
+});
+
 // Rotas de personagens
 app.get('/personagens', (req, res) => {
     res.json(personagens);
 });
 
 app.post('/personagens', (req, res) => {
+    const { error } = personagemSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
     const { nome, classe } = req.body;
-    if (!nome || !classe) {
-        return res.status(400).json({ error: 'Nome e classe são obrigatórios.' });
-    }
     const novoPersonagem = { id: personagens.length + 1, nome, classe };
     personagens.push(novoPersonagem);
     salvarDados(personagensPath, personagens);
@@ -73,10 +90,10 @@ app.get('/salas', (req, res) => {
 });
 
 app.post('/salas', (req, res) => {
+    const { error } = salaSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
     const { nome, descricao, mestre } = req.body;
-    if (!nome || !mestre) {
-        return res.status(400).json({ error: 'Nome e mestre são obrigatórios.' });
-    }
     const novaSala = { id: salas.length + 1, nome, descricao, mestre };
     salas.push(novaSala);
     salvarDados(salasPath, salas);
